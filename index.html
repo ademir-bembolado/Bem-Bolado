@@ -1,0 +1,244 @@
+HTML
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Bem Bolado F.C.</title>
+
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
+font-family:Arial;
+margin:0;
+background:#0d0d0d;
+color:#fff;
+}
+
+.header{
+background:#000;
+text-align:center;
+padding:10px;
+border-bottom:2px solid #222;
+}
+
+.header img{
+width:60px;
+}
+
+.tabs{
+display:flex;
+background:#111;
+}
+
+.tab{
+flex:1;
+padding:10px;
+border:none;
+background:#111;
+color:#777;
+}
+
+.tab.active{
+color:#fff;
+border-bottom:2px solid #fff;
+}
+
+.section{display:none;padding:10px}
+.section.active{display:block}
+
+.player{
+background:#222;
+padding:8px;
+margin:4px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.player.selected{
+background:#fff;
+color:#000;
+}
+
+.field{
+background:linear-gradient(#0a5f2a,#0d7a35);
+border-radius:10px;
+padding:10px;
+margin-top:10px;
+}
+
+.row{
+display:flex;
+justify-content:center;
+margin:6px 0;
+}
+
+.p{
+background:#fff;
+color:#000;
+padding:4px 8px;
+border-radius:10px;
+margin:3px;
+font-size:12px;
+}
+
+.btn{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:6px;
+font-weight:bold;
+}
+
+.btn-main{
+background:#fff;
+color:#000;
+}
+
+.btn-sec{
+background:#333;
+color:#fff;
+}
+
+.score{
+text-align:center;
+font-size:30px;
+margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="icon.png">
+<h2>Bem Bolado F.C.</h2>
+<div>Técnico: Dema</div>
+</div>
+
+<div class="tabs">
+<button class="tab active" onclick="showTab('presenca')">Presença</button>
+<button class="tab" onclick="showTab('campo')">Campo</button>
+<button class="tab" onclick="showTab('jogo')">Jogo</button>
+<button class="tab" onclick="showTab('stats')">Stats</button>
+</div>
+
+<!-- PRESENÇA -->
+<div id="presenca" class="section active">
+<h3>Jogadores</h3>
+<div id="lista"></div>
+<button class="btn btn-main" onclick="irCampo()">Montar Time</button>
+</div>
+
+<!-- CAMPO -->
+<div id="campo" class="section">
+<h3>Formação 4-4-2</h3>
+<div class="field" id="campoView"></div>
+</div>
+
+<!-- JOGO -->
+<div id="jogo" class="section">
+<div class="score"><span id="a">0</span> x <span id="b">0</span></div>
+
+<select id="marcador"></select>
+
+<button class="btn btn-main" onclick="gol('a')">Gol Bem Bolado</button>
+<button class="btn btn-main" onclick="gol('b')">Gol Adversário</button>
+
+<button class="btn btn-sec" onclick="finalizar()">Finalizar Jogo</button>
+</div>
+
+<!-- STATS -->
+<div id="stats" class="section">
+<div id="art"></div>
+</div>
+
+<script>
+
+const jogadores=["Lenon","Fláviao","Betão","Angelo","Tio","Ricardo","Urso","Naldinho","Julião","Du","Luizinho","Zé Carlos","Jean","Lécão","Valmir","Rafinha","Somália","Júnior","Lukinha","Márcio","Jonas","Diego","Wenderson","Na","Wellington","Aldo"];
+
+let presentes=new Set();
+let titulares=[];
+let stats={};
+
+jogadores.forEach(j=>stats[j]={g:0});
+
+function showTab(id){
+document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function render(){
+let el=document.getElementById('lista');
+el.innerHTML='';
+jogadores.forEach(j=>{
+let d=document.createElement('div');
+d.className='player'+(presentes.has(j)?' selected':'');
+d.innerText=j;
+d.onclick=()=>{
+presentes.has(j)?presentes.delete(j):presentes.add(j);
+render();
+}
+el.appendChild(d);
+});
+}
+
+function irCampo(){
+titulares=[...presentes].slice(0,11);
+renderCampo();
+renderMarcador();
+showTab('campo');
+}
+
+function renderCampo(){
+let c=document.getElementById('campoView');
+
+let l=titulares;
+
+c.innerHTML=`
+<div class="row">${l.slice(9,11).map(p=>`<div class="p">${p}</div>`).join('')}</div>
+<div class="row">${l.slice(5,9).map(p=>`<div class="p">${p}</div>`).join('')}</div>
+<div class="row">${l.slice(1,5).map(p=>`<div class="p">${p}</div>`).join('')}</div>
+<div class="row">${l.slice(0,1).map(p=>`<div class="p">${p}</div>`).join('')}</div>
+`;
+}
+
+function renderMarcador(){
+let m=document.getElementById('marcador');
+m.innerHTML='';
+titulares.forEach(p=>{
+let o=document.createElement('option');
+o.text=p;
+m.add(o);
+});
+}
+
+let A=0,B=0;
+
+function gol(t){
+let j=document.getElementById('marcador').value;
+stats[j].g++;
+
+if(t==='a'){A++}else{B++}
+
+document.getElementById('a').innerText=A;
+document.getElementById('b').innerText=B;
+}
+
+function finalizar(){
+let art=Object.entries(stats).sort((a,b)=>b[1].g-a[1].g);
+
+document.getElementById('art').innerHTML="<h3>Artilharia</h3>"+art.map(([n,s])=>`${n} - ${s.g}`).join("<br>");
+
+showTab('stats');
+}
+
+render();
+
+</script>
+</body>
+</html>
